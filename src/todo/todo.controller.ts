@@ -51,8 +51,12 @@ export class TodoController {
 
   // 创建新的 ToDo
   @Post()
-  createTodo(@Body('title') title: string): ApiResponse<Todo> {
-    const newTodo = this.todoService.createTodo(title);
+  createTodo(
+    @Body() body: { title: string; completed?: boolean; date?: Date },
+  ): ApiResponse<Todo> {
+    // 默认 completed 为 false, date 为当前时间
+    const { title, completed = false, date } = body;
+    const newTodo = this.todoService.createTodo(title, completed, date);
     return {
       code: 201,
       data: newTodo,

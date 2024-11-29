@@ -15,19 +15,24 @@ export class TodoService {
     return this.todos.find((todo) => todo.id === id);
   }
 
-  // 创建新的 ToDo
-  createTodo(title: string): Todo {
-    const newTodo = new Todo(this.todos.length + 1, title);
+  // 创建新的 ToDo，title 和 completed 为必传，date 可选
+  createTodo(title: string, completed: boolean = false, date?: Date): Todo {
+    const newTodo = new Todo(
+      this.todos.length + 1, // id
+      title, // title
+      completed, // completed
+      date, // date (可选)
+    );
     this.todos.push(newTodo);
     return newTodo;
   }
 
-  // 更新 ToDo
+  // 更新 ToDo，允许更新部分字段
   updateTodo(id: number, updatedFields: Partial<Todo>): Todo | undefined {
     const todo = this.getTodoById(id);
     if (!todo) return undefined;
 
-    Object.assign(todo, updatedFields);
+    Object.assign(todo, updatedFields); // 合并更新的字段
     return todo;
   }
 
