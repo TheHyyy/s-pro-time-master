@@ -10,6 +10,7 @@ import {
 import { TodoService } from './todo.service';
 import { Todo } from './todo.model';
 import { ResponseDto } from '@/dto/response.dto'; // 引入统一的响应体 DTO
+import { RESPONSE_MSG } from '@/enums'; // 引入响应提示语枚举
 
 @Controller('todos') // 设置路由前缀
 export class TodoController {
@@ -22,7 +23,7 @@ export class TodoController {
     return {
       code: 200,
       data: todos,
-      msg: '请求成功',
+      msg: RESPONSE_MSG.SUCCESS,
       timestamp: Date.now(),
     };
   }
@@ -35,14 +36,14 @@ export class TodoController {
       return {
         code: 200,
         data: todo,
-        msg: '请求成功',
+        msg: RESPONSE_MSG.SUCCESS,
         timestamp: Date.now(),
       };
     } else {
       return {
         code: 404,
         data: undefined,
-        msg: 'Todo not found',
+        msg: RESPONSE_MSG.NOT_FOUND,
         timestamp: Date.now(),
       };
     }
@@ -75,14 +76,14 @@ export class TodoController {
       return {
         code: 200,
         data: updatedTodo,
-        msg: '更新成功',
+        msg: RESPONSE_MSG.UPDATED,
         timestamp: Date.now(),
       };
     } else {
       return {
         code: 404,
         data: undefined,
-        msg: 'Todo not found',
+        msg: RESPONSE_MSG.NOT_FOUND,
         timestamp: Date.now(),
       };
     }
@@ -96,14 +97,14 @@ export class TodoController {
       return {
         code: 200,
         data: true,
-        msg: '删除成功',
+        msg: RESPONSE_MSG.DELETED,
         timestamp: Date.now(),
       };
     } else {
       return {
         code: 404,
         data: false,
-        msg: 'Todo not found',
+        msg: RESPONSE_MSG.NOT_FOUND,
         timestamp: Date.now(),
       };
     }

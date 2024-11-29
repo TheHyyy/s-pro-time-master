@@ -16,5 +16,9 @@ export enum RESPONSE_CODE {
  */
 export enum RESPONSE_MSG {
   SUCCESS = '请求成功',
-  FAILURE = '请求失败',
+  CREATED = '创建成功',
+  UPDATED = '更新成功',
+  DELETED = '删除成功',
+  NOT_FOUND = 'Todo not found',
+  ERROR = '请求失败',
 }
