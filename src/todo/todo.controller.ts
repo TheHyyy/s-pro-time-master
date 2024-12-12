@@ -52,11 +52,36 @@ export class TodoController {
   // 创建新的 ToDo
   @Post()
   createTodo(
-    @Body() body: { title: string; completed?: boolean; date?: Date },
+    @Body() body: { 
+      title: string; 
+      completed?: boolean; 
+      date?: Date; 
+      importance?: number; 
+      estimatedPomodoro?: number; 
+      completedPomodoro?: number; 
+      estimatedEndDate?: Date 
+    },
   ): ResponseDto {
-    // 默认 completed 为 false, date 为当前时间
-    const { title, completed = false, date } = body;
-    const newTodo = this.todoService.createTodo(title, completed, date);
+    // 默认 completed 为 false, date 为当前时间, importance 为 4
+    const { 
+      title, 
+      completed = false, 
+      date = new Date(), 
+      importance = 4,
+      estimatedPomodoro = 1,
+      completedPomodoro = 0,
+      estimatedEndDate 
+    } = body;
+    
+    const newTodo = this.todoService.createTodo(
+      title, 
+      completed, 
+      date, 
+      importance,
+      estimatedPomodoro,
+      completedPomodoro,
+      estimatedEndDate
+    );
     return {
       code: 201,
       data: newTodo,
