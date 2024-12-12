@@ -21,10 +21,11 @@ export class TodoController {
   getAllTodos(): ResponseDto {
     const todos = this.todoService.getAllTodos();
     return {
+      success: true,
       code: 200,
       data: todos,
       msg: RESPONSE_MSG.SUCCESS,
-      timestamp: Date.now(),
+      timestamp: Date.now(), // 保留时间戳（可根据需求选择去掉）
     };
   }
 
@@ -34,6 +35,7 @@ export class TodoController {
     const todo = this.todoService.getTodoById(+id); // 转为数字
     if (todo) {
       return {
+        success: true,
         code: 200,
         data: todo,
         msg: RESPONSE_MSG.SUCCESS,
@@ -41,8 +43,9 @@ export class TodoController {
       };
     } else {
       return {
+        success: false,
         code: 404,
-        data: undefined,
+        data: null,
         msg: RESPONSE_MSG.NOT_FOUND,
         timestamp: Date.now(),
       };
@@ -52,37 +55,38 @@ export class TodoController {
   // 创建新的 ToDo
   @Post()
   createTodo(
-    @Body() body: { 
-      title: string; 
-      completed?: boolean; 
-      date?: Date; 
-      importance?: number; 
-      estimatedPomodoro?: number; 
-      completedPomodoro?: number; 
-      estimatedEndDate?: Date 
+    @Body()
+    body: {
+      title: string;
+      completed?: boolean;
+      date?: Date;
+      importance?: number;
+      estimatedPomodoro?: number;
+      completedPomodoro?: number;
+      estimatedEndDate?: Date;
     },
   ): ResponseDto {
-    // 默认 completed 为 false, date 为当前时间, importance 为 4
-    const { 
-      title, 
-      completed = false, 
-      date = new Date(), 
+    const {
+      title,
+      completed = false,
+      date = new Date(),
       importance = 4,
       estimatedPomodoro = 1,
       completedPomodoro = 0,
-      estimatedEndDate 
+      estimatedEndDate,
     } = body;
-    
+
     const newTodo = this.todoService.createTodo(
-      title, 
-      completed, 
-      date, 
+      title,
+      completed,
+      date,
       importance,
       estimatedPomodoro,
       completedPomodoro,
-      estimatedEndDate
+      estimatedEndDate,
     );
     return {
+      success: true,
       code: 201,
       data: newTodo,
       msg: '创建成功',
@@ -99,6 +103,7 @@ export class TodoController {
     const updatedTodo = this.todoService.updateTodo(+id, updatedFields);
     if (updatedTodo) {
       return {
+        success: true,
         code: 200,
         data: updatedTodo,
         msg: RESPONSE_MSG.UPDATED,
@@ -106,8 +111,9 @@ export class TodoController {
       };
     } else {
       return {
+        success: false,
         code: 404,
-        data: undefined,
+        data: null,
         msg: RESPONSE_MSG.NOT_FOUND,
         timestamp: Date.now(),
       };
@@ -120,6 +126,7 @@ export class TodoController {
     const success = this.todoService.deleteTodoById(+id);
     if (success) {
       return {
+        success: true,
         code: 200,
         data: true,
         msg: RESPONSE_MSG.DELETED,
@@ -127,6 +134,7 @@ export class TodoController {
       };
     } else {
       return {
+        success: false,
         code: 404,
         data: false,
         msg: RESPONSE_MSG.NOT_FOUND,
