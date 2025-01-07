@@ -69,4 +69,13 @@ export class TodoService {
     this.todos.splice(index, 1);
     return true;
   }
+
+  // 更新番茄钟完成数
+  updateTodoPomodoros(id: number): Todo | undefined {
+    const todo = this.getTodoById(id);
+    if (!todo) return undefined;
+
+    todo.completedPomodoros += 1;
+    return todo;
+  }
 }

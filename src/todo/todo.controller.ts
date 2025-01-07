@@ -142,4 +142,27 @@ export class TodoController {
       };
     }
   }
+
+  // 更新番茄钟完成数
+  @Patch(':id/pomodoros')
+  updateTodoPomodoros(@Param('id') id: string): ResponseDto {
+    const updatedTodo = this.todoService.updateTodoPomodoros(+id);
+    if (updatedTodo) {
+      return {
+        success: true,
+        code: 200,
+        data: updatedTodo,
+        msg: '番茄钟完成数更新成功',
+        timestamp: Date.now(),
+      };
+    } else {
+      return {
+        success: false,
+        code: 404,
+        data: null,
+        msg: RESPONSE_MSG.NOT_FOUND,
+        timestamp: Date.now(),
+      };
+    }
+  }
 }
