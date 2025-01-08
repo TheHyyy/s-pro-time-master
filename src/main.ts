@@ -1,15 +1,27 @@
 import { NestFactory } from '@nestjs/core';
+import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
-import { AllExceptionsFilter } from '@/filter/all-exception.filter'; // 全局异常过滤器
-import { HttpExceptionsFilter } from '@/filter/http-exception.filter'; // http 异常过滤器
+import 'reflect-metadata';
+import { AllExceptionsFilter } from './filter/all-exception.filter';
+import { HttpExceptionsFilter } from './filter/http-exception.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  
+  // 配置 Swagger
+  const config = new DocumentBuilder()
+    .setTitle('Pro Time Master API')
+    .setDescription('The Pro Time Master API description')
+    .setVersion('1.0')
+    .addBearerAuth()
+    .build();
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('api', app, document);
 
-  // 错误异常捕获 和 过滤处理
+  app.enableCors();
   app.useGlobalFilters(new AllExceptionsFilter());
   app.useGlobalFilters(new HttpExceptionsFilter());
 
-  await app.listen(process.env.PORT ?? 3000);
+  await app.listen(3000);
 }
 bootstrap();

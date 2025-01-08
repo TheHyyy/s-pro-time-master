@@ -1,9 +1,12 @@
 import { Module } from '@nestjs/common';
-import { TodoController } from './todo.controller'; // 引入控制器
-import { TodoService } from './todo.service'; // 引入服务
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { TodoController } from './todo.controller';
+import { TodoService } from './todo.service';
+import { Todo } from './entities/todo.entity';
 
 @Module({
-  controllers: [TodoController], // 注册控制器
-  providers: [TodoService], // 注册服务
+  imports: [TypeOrmModule.forFeature([Todo])],
+  controllers: [TodoController],
+  providers: [TodoService],
 })
 export class TodoModule {}

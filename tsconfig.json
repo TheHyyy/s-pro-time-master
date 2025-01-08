@@ -6,27 +6,19 @@
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "allowSyntheticDefaultImports": true,
-    "target": "ES2021",
+    "target": "es2017",
     "sourceMap": true,
     "outDir": "./dist",
-    "baseUrl": "./src", // 设置 baseUrl 为 src 目录
-    "paths": {
-      "@/*": ["*"], // 使用 @ 指向 src 目录
-      "@types/*": ["types/*"] // 如果你有 types 文件夹，可以映射到 types 文件夹
-    },
-    "paths": {
-      "@/*": ["*"], // 允许使用 @ 来引用 src 目录
-      "@types/*": ["types/*"] // 让 @types 指向 types 文件夹
-    },
-    "esModuleInterop": true,
+    "baseUrl": "./",
     "incremental": true,
     "skipLibCheck": true,
     "strictNullChecks": false,
     "noImplicitAny": false,
     "strictBindCallApply": false,
     "forceConsistentCasingInFileNames": false,
-    "noFallthroughCasesInSwitch": false
-  },
-  "include": ["src/**/*", "src/types/**/*"],
-  "exclude": ["node_modules"]
+    "noFallthroughCasesInSwitch": false,
+    "paths": {
+      "@/*": ["src/*"]
+    }
+  }
 }

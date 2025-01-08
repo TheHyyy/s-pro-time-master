@@ -1,81 +1,76 @@
 import { Injectable } from '@nestjs/common';
-import { Todo } from './todo.model';
-
-// 假设你在某个地方定义了 importance 的映射关系
-const importanceMap = {
-  1: '紧急且重要',
-  2: '重要不紧急',
-  3: '紧急不重要',
-  4: '不紧急不重要'
-};
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Todo } from './entities/todo.entity';
 
 @Injectable()
 export class TodoService {
-  private todos: Todo[] = [];
+  constructor(
+    @InjectRepository(Todo)
+    private readonly todoRepository: Repository<Todo>,
+  ) {}
 
-  // 获取所有 ToDo
-  getAllTodos(): Todo[] {
-    return this.todos;
+  async getAllTodos(): Promise<Todo[]> {
+    return await this.todoRepository.find();
   }
 
-  // 根据 ID 获取 ToDo
-  getTodoById(id: number): Todo | undefined {
-    return this.todos.find((todo) => todo.id === id);
+  async getTodoById(id: number): Promise<Todo> {
+    return await this.todoRepository.findOne({ where: { id } });
   }
 
-  // 创建新的 ToDo，增加了新字段
-  createTodo(
-    title: string, 
-    completed: boolean = false, 
-    date?: Date, 
-    importance: number = 4, // 默认值设为4（'不紧急不重要'）
-    estimatedPomodoro: number = 1,
-    completedPomodoro: number = 0,
-    estimatedEndDate?: Date
-  ): Todo {
-    const newTodo = new Todo(
-      this.todos.length + 1, // id
-      title, // title
-      completed, // completed
-      date, // date (可选)
-      importance, // importance 作为数字存储
-      estimatedPomodoro, // 预计完成的番茄钟
-      completedPomodoro, // 实际完成的番茄钟
-      estimatedEndDate // 预计结束日期
-    );
-    this.todos.push(newTodo);
-    return newTodo;
+  async createTodo(todoData: Partial<Todo>): Promise<Todo> {
+    const todo = this.todoRepository.create(todoData);
+    return await this.todoRepository.save(todo);
   }
 
-  // 更新 ToDo，允许更新新字段
-  updateTodo(id: number, updatedFields: Partial<Todo>): Todo | undefined {
-    const todo = this.getTodoById(id);
-    if (!todo) return undefined;
-
-    Object.assign(todo, updatedFields); // 合并更新的字段
-    return todo;
+  async updateTodo(id: number, todoData: Partial<Todo>): Promise<Todo> {
+    await this.todoRepository.update(id, todoData);
+    return await this.getTodoById(id);
   }
 
-  // 如果你需要将数字转换回字符串描述，可以添加一个方法或直接在获取时转换
-  getImportanceDescription(importance: number): string | undefined {
-    return importanceMap[importance];
+  async deleteTodoById(id: number): Promise<boolean> {
+    const result = await this.todoRepository.delete(id);
+    return result.affected > 0;
   }
 
-  // 删除 ToDo
-  deleteTodoById(id: number): boolean {
-    const index = this.todos.findIndex((todo) => todo.id === id);
-    if (index === -1) return false;
-
-    this.todos.splice(index, 1);
-    return true;
+  async findOne(id: number): Promise<Todo> {
+    return await this.todoRepository.findOne({ where: { id } });
   }
 
-  // 更新番茄钟完成数
-  updateTodoPomodoros(id: number): Todo | undefined {
-    const todo = this.getTodoById(id);
-    if (!todo) return undefined;
-
+  async updatePomodoros(id: number): Promise<Todo> {
+    const todo = await this.findOne(id);
+    if (!todo) {
+      throw new Error('Todo not found');
+    }
+    
     todo.completedPomodoros += 1;
-    return todo;
+    
+    if (todo.completedPomodoros >= todo.estimatedPomodoros) {
+      todo.completed = true;
+    }
+    
+    return await this.todoRepository.save(todo);
+  }
+
+  async getTodoStats(userId?: number) {
+    const queryBuilder = this.todoRepository.createQueryBuilder('todo');
+    
+    if (userId) {
+      queryBuilder.where('todo.userId = :userId', { userId });
+    }
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const stats = await queryBuilder
+      .select([
+        'COUNT(*) as totalTodos',
+        'SUM(CASE WHEN completed = true THEN 1 ELSE 0 END) as completedTodos',
+        'SUM(completedPomodoros) as totalPomodoros',
+      ])
+      .where('createdAt >= :today', { today })
+      .getRawOne();
+
+    return stats;
   }
 }
