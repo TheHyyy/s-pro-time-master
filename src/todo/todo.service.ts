@@ -1,76 +1,137 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Todo } from './entities/todo.entity';
+import { CreateTodoDto } from './dto/create-todo.dto';
+import { UpdateTodoDto } from './dto/update-todo.dto';
+import { User } from '../user/entities/user.entity';
 
 @Injectable()
 export class TodoService {
   constructor(
     @InjectRepository(Todo)
     private readonly todoRepository: Repository<Todo>,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
   ) {}
 
-  async getAllTodos(): Promise<Todo[]> {
-    return await this.todoRepository.find();
+  async create(userId: number, createTodoDto: CreateTodoDto) {
+    try {
+      const user = await this.userRepository.findOne({ where: { id: userId } });
+      if (!user) {
+        throw new NotFoundException('User not found');
+      }
+
+      const todo = this.todoRepository.create({
+        ...createTodoDto,
+        user,
+        completed: false,
+        pomodoroCount: 0
+      });
+
+      const savedTodo = await this.todoRepository.save(todo);
+      
+      // 返回时排除敏感信息
+      const { user: _, ...todoWithoutUser } = savedTodo;
+      return todoWithoutUser;
+    } catch (error) {
+      console.error('Create todo error:', error);
+      throw error;
+    }
   }
 
-  async getTodoById(id: number): Promise<Todo> {
-    return await this.todoRepository.findOne({ where: { id } });
+  async findAll(userId: number) {
+    return await this.todoRepository.find({
+      where: { user: { id: userId } },
+      order: { createdAt: 'DESC' }
+    });
   }
 
-  async createTodo(todoData: Partial<Todo>): Promise<Todo> {
-    const todo = this.todoRepository.create(todoData);
-    return await this.todoRepository.save(todo);
+  async update(id: number, updateTodoDto: UpdateTodoDto) {
+    try {
+      const todo = await this.todoRepository.findOne({ 
+        where: { id },
+        relations: ['user'] 
+      });
+      
+      if (!todo) {
+        throw new NotFoundException('Todo not found');
+      }
+
+      // 更新字段
+      Object.assign(todo, updateTodoDto);
+      
+      const savedTodo = await this.todoRepository.save(todo);
+      
+      // 返回时排除敏感信息
+      const { user: _, ...todoWithoutUser } = savedTodo;
+      return todoWithoutUser;
+    } catch (error) {
+      console.error('Update todo error:', error);
+      throw error;
+    }
   }
 
-  async updateTodo(id: number, todoData: Partial<Todo>): Promise<Todo> {
-    await this.todoRepository.update(id, todoData);
-    return await this.getTodoById(id);
-  }
-
-  async deleteTodoById(id: number): Promise<boolean> {
-    const result = await this.todoRepository.delete(id);
-    return result.affected > 0;
-  }
-
-  async findOne(id: number): Promise<Todo> {
-    return await this.todoRepository.findOne({ where: { id } });
-  }
-
-  async updatePomodoros(id: number): Promise<Todo> {
-    const todo = await this.findOne(id);
+  async remove(id: number) {
+    const todo = await this.todoRepository.findOne({ where: { id } });
     if (!todo) {
-      throw new Error('Todo not found');
+      throw new NotFoundException('Todo not found');
     }
-    
-    todo.completedPomodoros += 1;
-    
-    if (todo.completedPomodoros >= todo.estimatedPomodoros) {
-      todo.completed = true;
-    }
-    
-    return await this.todoRepository.save(todo);
+
+    await this.todoRepository.remove(todo);
+    return { success: true };
   }
 
-  async getTodoStats(userId?: number) {
-    const queryBuilder = this.todoRepository.createQueryBuilder('todo');
-    
-    if (userId) {
-      queryBuilder.where('todo.userId = :userId', { userId });
+  async getStats(userId: number) {
+    const todos = await this.todoRepository.find({
+      where: { user: { id: userId } }
+    });
+
+    // 计算四象限分布
+    const quadrantDistribution = todos.reduce((acc, todo) => {
+      acc[todo.quadrant] = (acc[todo.quadrant] || 0) + 1;
+      return acc;
+    }, {});
+
+    // 计算每周完成情况
+    const now = new Date();
+    const weekStart = new Date(now.setDate(now.getDate() - now.getDay()));
+    const weeklyCompletion = {
+      completed: new Array(7).fill(0),
+      pending: new Array(7).fill(0)
+    };
+
+    todos.forEach(todo => {
+      const createdDate = new Date(todo.createdAt);
+      if (createdDate >= weekStart) {
+        const dayIndex = createdDate.getDay();
+        if (todo.completed) {
+          weeklyCompletion.completed[dayIndex]++;
+        } else {
+          weeklyCompletion.pending[dayIndex]++;
+        }
+      }
+    });
+
+    return {
+      quadrantDistribution,
+      weeklyCompletion,
+      totalCount: todos.length,
+      completedCount: todos.filter(t => t.completed).length,
+      pomodoroStats: {
+        dates: [], // 这里可以添加日期统计
+        counts: [] // 这里可以添加番茄钟统计
+      }
+    };
+  }
+
+  async updatePomodoros(id: number) {
+    const todo = await this.todoRepository.findOne({ where: { id } });
+    if (!todo) {
+      throw new NotFoundException('Todo not found');
     }
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    const stats = await queryBuilder
-      .select([
-        'COUNT(*) as totalTodos',
-        'SUM(CASE WHEN completed = true THEN 1 ELSE 0 END) as completedTodos',
-        'SUM(completedPomodoros) as totalPomodoros',
-      ])
-      .where('createdAt >= :today', { today })
-      .getRawOne();
-
-    return stats;
+    todo.pomodoroCount += 1;
+    return await this.todoRepository.save(todo);
   }
 }

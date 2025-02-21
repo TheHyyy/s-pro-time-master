@@ -4,9 +4,15 @@ import { AppModule } from './app.module';
 import 'reflect-metadata';
 import { AllExceptionsFilter } from './filter/all-exception.filter';
 import { HttpExceptionsFilter } from './filter/http-exception.filter';
+import { ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  
+  app.useGlobalPipes(new ValidationPipe({
+    whitelist: true,
+    transform: true,
+  }));
   
   // 配置 Swagger
   const config = new DocumentBuilder()

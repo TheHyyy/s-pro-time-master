@@ -1,4 +1,4 @@
-import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, BeforeInsert, BeforeUpdate } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 import { User } from '../../user/entities/user.entity';
 
 @Entity()
@@ -9,39 +9,24 @@ export class Todo {
   @Column()
   title: string;
 
+  @Column({ nullable: true })
+  description: string;
+
   @Column({ default: false })
   completed: boolean;
 
-  @Column({ default: 4 })
-  priority: number;
-
-  @Column({ default: 1 })
-  estimatedPomodoros: number;
-
   @Column({ default: 0 })
-  completedPomodoros: number;
-
-  @Column({ nullable: true })
-  dueDate: string;
+  pomodoroCount: number;
 
   @Column()
-  createdAt: string;
-
-  @Column()
-  updatedAt: string;
+  quadrant: string;
 
   @ManyToOne(() => User, user => user.todos)
   user: User;
 
-  @BeforeInsert()
-  updateDatesOnInsert() {
-    const now = new Date().toISOString();
-    this.createdAt = now;
-    this.updatedAt = now;
-  }
+  @CreateDateColumn()
+  createdAt: Date;
 
-  @BeforeUpdate()
-  updateDatesOnUpdate() {
-    this.updatedAt = new Date().toISOString();
-  }
+  @UpdateDateColumn()
+  updatedAt: Date;
 } 

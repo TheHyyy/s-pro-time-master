@@ -6,63 +6,65 @@ import {
   Param,
   Patch,
   Delete,
+  UseGuards,
+  Request,
 } from '@nestjs/common';
 import { TodoService } from './todo.service';
+import { CreateTodoDto } from './dto/create-todo.dto';
+import { UpdateTodoDto } from './dto/update-todo.dto';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
-import { responseMessage } from '../utils/response';
-import { Todo } from './entities/todo.entity';
 
+@ApiTags('todo')
 @Controller('todos')
-@ApiTags('todos')
+@UseGuards(JwtAuthGuard)
 export class TodoController {
   constructor(private readonly todoService: TodoService) {}
 
-  @Get()
-  @ApiOperation({ summary: '获取所有待办事项' })
-  async getAllTodos() {
-    const todos = await this.todoService.getAllTodos();
-    return responseMessage(todos);
-  }
-
-  @Get(':id')
-  @ApiOperation({ summary: '获取单个待办事项' })
-  async getTodoById(@Param('id') id: string) {
-    const todo = await this.todoService.getTodoById(+id);
-    return responseMessage(todo);
-  }
-
   @Post()
   @ApiOperation({ summary: '创建待办事项' })
-  async createTodo(@Body() todoData: Partial<Todo>) {
-    const todo = await this.todoService.createTodo(todoData);
-    return responseMessage(todo);
+  async create(@Request() req, @Body() createTodoDto: CreateTodoDto) {
+    return await this.todoService.create(req.user.id, createTodoDto);
+  }
+
+  @Get()
+  @ApiOperation({ summary: '获取待办事项列表' })
+  async findAll(@Request() req) {
+    return await this.todoService.findAll(req.user.id);
   }
 
   @Patch(':id')
   @ApiOperation({ summary: '更新待办事项' })
-  async updateTodo(@Param('id') id: string, @Body() todoData: Partial<Todo>) {
-    const todo = await this.todoService.updateTodo(+id, todoData);
-    return responseMessage(todo);
+  async update(@Param('id') id: string, @Body() updateTodoDto: UpdateTodoDto) {
+    try {
+      const result = await this.todoService.update(+id, updateTodoDto);
+      return {
+        success: true,
+        code: 200,
+        data: result,
+        msg: '更新成功',
+        timestamp: new Date().getTime()
+      };
+    } catch (error) {
+      throw error;
+    }
   }
 
   @Delete(':id')
   @ApiOperation({ summary: '删除待办事项' })
-  async deleteTodoById(@Param('id') id: string) {
-    const success = await this.todoService.deleteTodoById(+id);
-    return responseMessage(success);
-  }
-
-  @Patch(':id/pomodoros')
-  @ApiOperation({ summary: '更新任务的番茄钟完成数' })
-  async updatePomodoros(@Param('id') id: string) {
-    const todo = await this.todoService.updatePomodoros(+id);
-    return responseMessage(todo);
+  async remove(@Param('id') id: string) {
+    return await this.todoService.remove(+id);
   }
 
   @Get('stats')
-  @ApiOperation({ summary: '获取任务统计信息' })
-  async getStats() {
-    const stats = await this.todoService.getTodoStats();
-    return responseMessage(stats);
+  @ApiOperation({ summary: '获取统计信息' })
+  async getStats(@Request() req) {
+    return await this.todoService.getStats(req.user.id);
+  }
+
+  @Patch(':id/pomodoros')
+  @ApiOperation({ summary: '更新番茄钟完成数' })
+  async updatePomodoros(@Param('id') id: string) {
+    return await this.todoService.updatePomodoros(+id);
   }
 }
