@@ -12,7 +12,7 @@ import { TodoModule } from './todo/todo.module';
       type: 'sqlite',
       database: process.env.DB_NAME || 'db.sqlite',
       entities: [__dirname + '/**/*.entity{.ts,.js}'],
-      synchronize: false,
+      synchronize: true,
       logging: false,
     }),
     AuthModule,

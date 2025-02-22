@@ -6,31 +6,29 @@ import {
   Param,
   Patch,
   Delete,
-  UseGuards,
-  Request,
 } from '@nestjs/common';
 import { TodoService } from './todo.service';
 import { CreateTodoDto } from './dto/create-todo.dto';
 import { UpdateTodoDto } from './dto/update-todo.dto';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 
 @ApiTags('todo')
 @Controller('todos')
-@UseGuards(JwtAuthGuard)
 export class TodoController {
   constructor(private readonly todoService: TodoService) {}
 
   @Post()
   @ApiOperation({ summary: '创建待办事项' })
-  async create(@Request() req, @Body() createTodoDto: CreateTodoDto) {
-    return await this.todoService.create(req.user.id, createTodoDto);
+  async create(@Body() createTodoDto: CreateTodoDto) {
+    // 暂时使用固定用户ID，后续需要从认证中获取
+    return await this.todoService.create(1, createTodoDto);
   }
 
   @Get()
   @ApiOperation({ summary: '获取待办事项列表' })
-  async findAll(@Request() req) {
-    return await this.todoService.findAll(req.user.id);
+  async findAll() {
+    // 暂时移除用户ID验证
+    return await this.todoService.findAll(1);
   }
 
   @Patch(':id')
@@ -58,8 +56,9 @@ export class TodoController {
 
   @Get('stats')
   @ApiOperation({ summary: '获取统计信息' })
-  async getStats(@Request() req) {
-    return await this.todoService.getStats(req.user.id);
+  async getStats() {
+    // 暂时移除用户ID验证
+    return await this.todoService.getStats(1);
   }
 
   @Patch(':id/pomodoros')

@@ -18,8 +18,17 @@ export class Todo {
   @Column({ default: 0 })
   pomodoroCount: number;
 
-  @Column()
+  @Column({ default: 'important-urgent' })
   quadrant: string;
+
+  @Column({ default: 4 })
+  priority: number;
+
+  @Column({ default: 0 })
+  estimatedPomodoro: number;
+
+  @Column({ type: 'datetime', nullable: true })
+  estimatedEndDate: Date;
 
   @ManyToOne(() => User, user => user.todos)
   user: User;
@@ -29,4 +38,4 @@ export class Todo {
 
   @UpdateDateColumn()
   updatedAt: Date;
-} 
+}

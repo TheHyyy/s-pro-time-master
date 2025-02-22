@@ -17,23 +17,14 @@ export class TodoService {
 
   async create(userId: number, createTodoDto: CreateTodoDto) {
     try {
-      const user = await this.userRepository.findOne({ where: { id: userId } });
-      if (!user) {
-        throw new NotFoundException('User not found');
-      }
-
       const todo = this.todoRepository.create({
         ...createTodoDto,
-        user,
         completed: false,
         pomodoroCount: 0
       });
 
       const savedTodo = await this.todoRepository.save(todo);
-      
-      // 返回时排除敏感信息
-      const { user: _, ...todoWithoutUser } = savedTodo;
-      return todoWithoutUser;
+      return savedTodo;
     } catch (error) {
       console.error('Create todo error:', error);
       throw error;
