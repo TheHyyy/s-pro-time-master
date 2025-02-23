@@ -20,15 +20,27 @@ export class TodoController {
   @Post()
   @ApiOperation({ summary: '创建待办事项' })
   async create(@Body() createTodoDto: CreateTodoDto) {
-    // 暂时使用固定用户ID，后续需要从认证中获取
-    return await this.todoService.create(1, createTodoDto);
+    const result = await this.todoService.create(createTodoDto);
+    return {
+      success: true,
+      code: 200,
+      data: result,
+      msg: '创建成功',
+      timestamp: new Date().getTime()
+    };
   }
 
   @Get()
   @ApiOperation({ summary: '获取待办事项列表' })
   async findAll() {
-    // 暂时移除用户ID验证
-    return await this.todoService.findAll(1);
+    const result = await this.todoService.findAll();
+    return {
+      success: true,
+      code: 200,
+      data: result,
+      msg: '获取成功',
+      timestamp: new Date().getTime()
+    };
   }
 
   @Patch(':id')
@@ -51,19 +63,39 @@ export class TodoController {
   @Delete(':id')
   @ApiOperation({ summary: '删除待办事项' })
   async remove(@Param('id') id: string) {
-    return await this.todoService.remove(+id);
+    const result = await this.todoService.remove(+id);
+    return {
+      success: true,
+      code: 200,
+      data: result,
+      msg: '删除成功',
+      timestamp: new Date().getTime()
+    };
   }
 
   @Get('stats')
   @ApiOperation({ summary: '获取统计信息' })
   async getStats() {
-    // 暂时移除用户ID验证
-    return await this.todoService.getStats(1);
+    const result = await this.todoService.getStats();
+    return {
+      success: true,
+      code: 200,
+      data: result,
+      msg: '获取成功',
+      timestamp: new Date().getTime()
+    };
   }
 
   @Patch(':id/pomodoros')
   @ApiOperation({ summary: '更新番茄钟完成数' })
   async updatePomodoros(@Param('id') id: string) {
-    return await this.todoService.updatePomodoros(+id);
+    const result = await this.todoService.updatePomodoros(+id);
+    return {
+      success: true,
+      code: 200,
+      data: result,
+      msg: '更新成功',
+      timestamp: new Date().getTime()
+    };
   }
 }

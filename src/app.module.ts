@@ -1,8 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { AuthModule } from './auth/auth.module';
-import { UserModule } from './user/user.module';
 import { TodoModule } from './todo/todo.module';
 
 @Module({
@@ -15,8 +13,6 @@ import { TodoModule } from './todo/todo.module';
       synchronize: true,
       logging: false,
     }),
-    AuthModule,
-    UserModule,
     TodoModule,
   ],
 })

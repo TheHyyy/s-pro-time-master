@@ -4,18 +4,15 @@ import { Repository } from 'typeorm';
 import { Todo } from './entities/todo.entity';
 import { CreateTodoDto } from './dto/create-todo.dto';
 import { UpdateTodoDto } from './dto/update-todo.dto';
-import { User } from '../user/entities/user.entity';
 
 @Injectable()
 export class TodoService {
   constructor(
     @InjectRepository(Todo)
     private readonly todoRepository: Repository<Todo>,
-    @InjectRepository(User)
-    private readonly userRepository: Repository<User>,
   ) {}
 
-  async create(userId: number, createTodoDto: CreateTodoDto) {
+  async create(createTodoDto: CreateTodoDto) {
     try {
       const todo = this.todoRepository.create({
         ...createTodoDto,
@@ -23,17 +20,15 @@ export class TodoService {
         pomodoroCount: 0
       });
 
-      const savedTodo = await this.todoRepository.save(todo);
-      return savedTodo;
+      return await this.todoRepository.save(todo);
     } catch (error) {
       console.error('Create todo error:', error);
       throw error;
     }
   }
 
-  async findAll(userId: number) {
+  async findAll() {
     return await this.todoRepository.find({
-      where: { user: { id: userId } },
       order: { createdAt: 'DESC' }
     });
   }
@@ -41,8 +36,7 @@ export class TodoService {
   async update(id: number, updateTodoDto: UpdateTodoDto) {
     try {
       const todo = await this.todoRepository.findOne({ 
-        where: { id },
-        relations: ['user'] 
+        where: { id }
       });
       
       if (!todo) {
@@ -52,11 +46,7 @@ export class TodoService {
       // 更新字段
       Object.assign(todo, updateTodoDto);
       
-      const savedTodo = await this.todoRepository.save(todo);
-      
-      // 返回时排除敏感信息
-      const { user: _, ...todoWithoutUser } = savedTodo;
-      return todoWithoutUser;
+      return await this.todoRepository.save(todo);
     } catch (error) {
       console.error('Update todo error:', error);
       throw error;
@@ -73,10 +63,8 @@ export class TodoService {
     return { success: true };
   }
 
-  async getStats(userId: number) {
-    const todos = await this.todoRepository.find({
-      where: { user: { id: userId } }
-    });
+  async getStats() {
+    const todos = await this.todoRepository.find();
 
     // 计算四象限分布
     const quadrantDistribution = todos.reduce((acc, todo) => {
@@ -105,14 +93,10 @@ export class TodoService {
     });
 
     return {
-      quadrantDistribution,
-      weeklyCompletion,
       totalCount: todos.length,
       completedCount: todos.filter(t => t.completed).length,
-      pomodoroStats: {
-        dates: [], // 这里可以添加日期统计
-        counts: [] // 这里可以添加番茄钟统计
-      }
+      quadrantDistribution,
+      weeklyCompletion
     };
   }
 
